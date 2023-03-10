@@ -21,7 +21,7 @@ beautiful.init(gfs.get_configuration_dir() .. "theme/theme.lua")
 terminal = "alacritty"
 editor = terminal .. " -e " .. os.getenv("EDITOR")
 vscode = "code"
-browser = "firefox"
+browser = "google-chrome"
 launcher = "rofi -show drun -theme " .. os.getenv("HOME") .. "/.config/awesome/theme/rofi.rasi"
 file_manager = "nautilus"
 music_client = terminal .. " --class music -e ncmpcpp"
