@@ -10,11 +10,11 @@ configuration {
 @theme "/dev/null"
 
 * {
-	bg:				#061115;
-	fg:				#d9d7d6;
-	accent:			#1c252c;
-	darkerAccent:	#162026;
-    active:      	#484e5b;
+	bg:				#111111;
+	fg:				#ffffff;
+	accent:			#ffffff;
+	darkerAccent:	#212121;
+    active:      	#414141;
 	rad:			12px;
 
 	background-color: @bg;
