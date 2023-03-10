@@ -1,257 +1,123 @@
-#! /bin/zsh
+########## Prompt ##########
 
-#--------------------------------------------------------------------------------
-#	▒███████▒  ██████  ██░ ██     ▄████▄   ▒█████   ███▄    █   █████▒██▓  ▄████ 
-#	▒ ▒ ▒ ▄▀░▒██    ▒ ▓██░ ██▒   ▒██▀ ▀█  ▒██▒  ██▒ ██ ▀█   █ ▓██   ▒▓██▒ ██▒ ▀█▒
-#	░ ▒ ▄▀▒░ ░ ▓██▄   ▒██▀▀██░   ▒▓█    ▄ ▒██░  ██▒▓██  ▀█ ██▒▒████ ░▒██▒▒██░▄▄▄░
-#	  ▄▀▒   ░  ▒   ██▒░▓█ ░██    ▒▓▓▄ ▄██▒▒██   ██░▓██▒  ▐▌██▒░▓█▒  ░░██░░▓█  ██▓
-#	▒███████▒▒██████▒▒░▓█▒░██▓   ▒ ▓███▀ ░░ ████▓▒░▒██░   ▓██░░▒█░   ░██░░▒▓███▀▒
-#	░▒▒ ▓░▒░▒▒ ▒▓▒ ▒ ░ ▒ ░░▒░▒   ░ ░▒ ▒  ░░ ▒░▒░▒░ ░ ▒░   ▒ ▒  ▒ ░   ░▓   ░▒   ▒ 
-#	░░▒ ▒ ░ ▒░ ░▒  ░ ░ ▒ ░▒░ ░     ░  ▒     ░ ▒ ▒░ ░ ░░   ░ ▒░ ░      ▒ ░  ░   ░ 
-#	░ ░ ░ ░ ░░  ░  ░   ░  ░░ ░   ░        ░ ░ ░ ▒     ░   ░ ░  ░ ░    ▒ ░░ ░   ░ 
-#	  ░ ░          ░   ░  ░  ░   ░ ░          ░ ░           ░         ░        ░ 
-#	░                            ░                                               
-#--------------------------------By: @rxyhn--------------------------------------
+git_prompt() {
+    local branch="$(git symbolic-ref HEAD 2> /dev/null | cut -d'/' -f3-)"
+    local branch_truncated="${branch:0:30}"
+    if (( ${#branch} > ${#branch_truncated} )); then
+        branch="${branch_truncated}..."
+    fi
 
+    [ -n "${branch}" ] && echo "  ${branch}"
+}
 
+setopt PROMPT_SUBST
+PROMPT='%B%F{blue}󰣇%f%b  %B%F{magenta}%n%f%b %B%F{red}%~%f%b%B%F{yellow}$(git_prompt)%f%b %(?.%B%F{green}✓.%F{red}✕)%f%b %B%F{green}%f%b '
 
-# Uncomment the following line to enable command auto-correction.
-ENABLE_CORRECTION="true"
+export VISUAL=code;
+export EDITOR=nano;
+export HISTORY_IGNORE="(ls|cd|pwd|exit|sudo reboot|history|cd -|cd ..)"
 
-if [[ $- != *i* ]]; then
-	return
+if [ -d "$HOME/.local/bin" ] ;
+  then PATH="$HOME/.local/bin:$PATH"
 fi
 
-# completion cache path setup
-typeset -g comppath="$HOME/.cache"
-typeset -g compfile="$comppath/.zcompdump"
+# Lines configured by zsh-newuser-install
+HISTFILE=~/.config/zsh/zhistory
+HISTSIZE=5000
+SAVEHIST=5000
+bindkey -v
+# End of lines configured by zsh-newuser-install
+# The following lines were added by compinstall
+zstyle :compinstall filename '~/.zshrc'
 
-if [[ -d "$comppath" ]]; then
-	[[ -w "$compfile" ]] || rm -rf "$compfile" >/dev/null 2>&1
-else
-	mkdir -p "$comppath"
-fi
-
-# ---| zsh Internal Stuff |--- #
-SHELL=$(which zsh || echo '/bin/zsh')
-KEYTIMEOUT=1
-SAVEHIST=10000
-HISTSIZE=10000
-HISTFILE="$HOME/.cache/.zsh_history"
-
-# Show top 21 Commands used (thanks totoro
-toppy() {
-    history | awk '{CMD[$2]++;count++;}END { for (a in CMD)print CMD[a] " " CMD[a]/count*100 "% " a;}' | grep -v "./" | column -c3 -s " " -t | sort -nr | nl |  head -n 21
-}
-
-file_amount() {
-    ls -l | wc -l
-}
-
-# ls with preferred arguments
-ls() {
-	command ls --group-directories-first --color=auto -F1 "$@"
-}
-
-# cd and ls after
-cd() {
-	builtin cd "$@" && command ls --group-directories-first --color=auto -F
-}
-
-# recompile completion and reload zsh
-src() {
-	autoload -U zrecompile
-	rm -rf "$compfile"*
-	compinit -u -d "$compfile"
-	zrecompile -p "$compfile"
-	exec zsh
-}
-
-# completion
-setopt CORRECT
-setopt NO_NOMATCH
-setopt LIST_PACKED
-setopt ALWAYS_TO_END
-setopt GLOB_COMPLETE
-setopt COMPLETE_ALIASES
-setopt COMPLETE_IN_WORD
-
-# builtin command behaviour
-setopt AUTO_CD
-
-# job control
-setopt AUTO_CONTINUE
-setopt LONG_LIST_JOBS
-
-# history control
-setopt HIST_VERIFY
-setopt SHARE_HISTORY
-setopt HIST_IGNORE_SPACE
-setopt HIST_SAVE_NO_DUPS
-setopt HIST_IGNORE_ALL_DUPS
-
-# misc
-setopt EXTENDED_GLOB
-setopt TRANSIENT_RPROMPT
-setopt INTERACTIVE_COMMENTS
-
-autoload -U compinit     # completion
-autoload -U terminfo     # terminfo keys
-zmodload -i zsh/complist # menu completion
-autoload -U promptinit   # prompt
-
-# better history navigation, matching currently typed text
-autoload -U up-line-or-beginning-search; zle -N up-line-or-beginning-search
-autoload -U down-line-or-beginning-search; zle -N down-line-or-beginning-search
-
-# set the terminal mode when entering or exiting zle, otherwise terminfo keys are not loaded
-if (( ${+terminfo[smkx]} && ${+terminfo[rmkx]} )); then
-	zle-line-init() { echoti smkx; }; zle -N zle-line-init
-	zle-line-finish() { echoti rmkx; }; zle -N zle-line-finish
-fi
-
-
-# History
-zshAddHistory() {
-	whence ${${(z)1}[1]} >| /dev/null || return 1
-}
-
-# ---| Correction  and Autocompletion |--- #
-zstyle ':completion:*:correct:*' original true
-zstyle ':completion:*:correct:*' insert-unambiguous true
-zstyle ':completion:*:approximate:*' max-errors 'reply=($(( ($#PREFIX + $#SUFFIX) / 3 )) numeric)'
-
-# completion
-zstyle ':completion:*' use-cache on
-zstyle ':completion:*' cache-path "$comppath"
-zstyle ':completion:*' rehash true
-zstyle ':completion:*' verbose true
-zstyle ':completion:*' insert-tab false
-zstyle ':completion:*' accept-exact '*(N)'
-zstyle ':completion:*' squeeze-slashes true
+autoload -Uz compinit
+autoload -Uz add-zsh-hook
 zstyle ':completion:*:*:*:*:*' menu select
-zstyle ':completion:*:match:*' original only
-zstyle ':completion:*:-command-:*:' verbose false
-zstyle ':completion::complete:*' gain-privileges 1
-zstyle ':completion:*:manuals.*' insert-sections true
-zstyle ':completion:*:manuals' separate-sections true
-zstyle ':completion:*' completer _complete _match _approximate _ignored
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
-zstyle ':completion:*:cd:*' tag-order local-directories directory-stack path-directories
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' # case insensitive tab completion
+compinit -d ~/.config/zsh/zcompdump-$ZSH_VERSION
+_comp_options+=(globdots)
+# End of lines added by compinstall
 
-# labels and categories
-zstyle ':completion:*' group-name ''
-zstyle ':completion:*:matches' group 'yes'
-zstyle ':completion:*:options' description 'yes'
-zstyle ':completion:*:options' auto-description '%d'
-zstyle ':completion:*:default' list-prompt '%S%M matches%s'
-zstyle ':completion:*' format ' %F{green}->%F{yellow} %d%f'
-zstyle ':completion:*:messages' format ' %F{green}->%F{purple} %d%f'
-zstyle ':completion:*:descriptions' format ' %F{green}->%F{yellow} %d%f'
-zstyle ':completion:*:warnings' format ' %F{green}->%F{red} no matches%f'
-zstyle ':completion:*:corrections' format ' %F{green}->%F{green} %d: %e%f'
+setopt autocd              # change directory just by typing its name
+setopt promptsubst         # enable command substitution in prompt
+setopt MENU_COMPLETE       # Automatically highlight first element of completion menu
+setopt AUTO_LIST           # Automatically list choices on ambiguous completion.
+setopt COMPLETE_IN_WORD    # Complete from both ends of a word.
 
-# menu colours
-eval "$(dircolors)"
-zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#) ([0-9a-z-]#)*=36=0=01'
+# Waiting dots
 
-# command parameters
-zstyle ':completion:*:functions' ignored-patterns '(prompt*|_*|*precmd*|*preexec*)'
-zstyle ':completion::*:(-command-|export):*' fake-parameters ${${${_comps[(I)-value-*]#*,}%%,*}:#-*-}
-zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm -w -w"
-zstyle ':completion:*:processes-names' command 'ps c -u ${USER} -o command | uniq'
-zstyle ':completion:*:(vim|nvim|vi|nano):*' ignored-patterns '*.(wav|mp3|flac|ogg|mp4|avi|mkv|iso|so|o|7z|zip|tar|gz|bz2|rar|deb|pkg|gzip|pdf|png|jpeg|jpg|gif)'
+expand-or-complete-with-dots() {
+  echo -n "\e[31m…\e[0m"
+  zle expand-or-complete
+  zle redisplay
+}
+zle -N expand-or-complete-with-dots
+bindkey "^I" expand-or-complete-with-dots
 
-# hostnames and addresses
-zstyle ':completion:*:ssh:*' tag-order 'hosts:-host:host hosts:-domain:domain hosts:-ipaddr:ip\ address *'
-zstyle ':completion:*:ssh:*' group-order users hosts-domain hosts-host users hosts-ipaddr
-zstyle ':completion:*:(scp|rsync):*' tag-order 'hosts:-host:host hosts:-domain:domain hosts:-ipaddr:ip\ address *'
-zstyle ':completion:*:(scp|rsync):*' group-order users files all-files hosts-domain hosts-host hosts-ipaddr
-zstyle ':completion:*:(ssh|scp|rsync):*:hosts-host' ignored-patterns '*(.|:)*' loopback ip6-loopback localhost ip6-localhost broadcasthost
-zstyle ':completion:*:(ssh|scp|rsync):*:hosts-domain' ignored-patterns '<->.<->.<->.<->' '^[-[:alnum:]]##(.[-[:alnum:]]##)##' '*@*'
-zstyle ':completion:*:(ssh|scp|rsync):*:hosts-ipaddr' ignored-patterns '^(<->.<->.<->.<->|(|::)([[:xdigit:].]##:(#c,2))##(|%*))' '127.0.0.<->' '255.255.255.255' '::1' 'fe80::*'
-zstyle -e ':completion:*:hosts' hosts 'reply=( ${=${=${=${${(f)"$(cat {/etc/ssh_,~/.ssh/known_}hosts(|2)(N) 2>/dev/null)"}%%[#| ]*}//\]:[0-9]*/ }//,/ }//\[/ } ${=${(f)"$(cat /etc/hosts(|)(N) <<(ypcat hosts 2>/dev/null))"}%%\#*} ${=${${${${(@M)${(f)"$(cat ~/.ssh/config 2>/dev/null)"}:#Host *}#Host }:#*\**}:#*\?*}})'
-ttyctl -f
+# Plugins
+source ~/.config/zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
+source ~/.config/zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source ~/.config/zsh/zsh-history-substring-search/zsh-history-substring-search.zsh
 
-# For tty
-if [ "$TERM" = "linux" ] ; then
-    echo -en "\e]P0232323"
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+
+### CHANGE TITLE OF TERMINALS
+
+function xterm_title_precmd () {
+	print -Pn -- '\e]2;%n@%m %~\a'
+	[[ "$TERM" == 'screen'* ]] && print -Pn -- '\e_\005{g}%n\005{-}@\005{m}%m\005{-} \005{B}%~\005{-}\e\\'
+}
+
+function xterm_title_preexec () {
+	print -Pn -- '\e]2;%n@%m %~ %# ' && print -n -- "${(q)1}\a"
+	[[ "$TERM" == 'screen'* ]] && { print -Pn -- '\e_\005{g}%n\005{-}@\005{m}%m\005{-} \005{B}%~\005{-} %# ' && print -n -- "${(q)1}\e\\"; }
+}
+
+if [[ "$TERM" == (Eterm*|alacritty*|termite*|gnome*|konsole*|kterm*|putty*|rxvt*|screen*|tmux*|xterm*) ]]; then
+	add-zsh-hook -Uz precmd xterm_title_precmd
+	add-zsh-hook -Uz preexec xterm_title_preexec
 fi
 
-# initialize completion
-compinit -u -d "$compfile"
+######## Extract part ########
 
-# zsh auto suggestions and syntax highlighting and auto completion
-source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+extract () {
+    if [ -f $1 ] ; then
+            case $1 in
+            *.tar.bz2)    tar xvjf $1    ;;
+            *.tar.gz)    tar xvzf $1    ;;
+            *.tar.xz)    tar xf $1      ;;
+            *.bz2)        bunzip2 $1     ;;
+            *.rar)        unrar x $1     ;;
+            *.gz)        gunzip $1      ;;
+            *.tar)        tar xvf $1     ;;
+            *.tbz2)        tar xvjf $1    ;;
+            *.tgz)        tar xvzf $1    ;;
+            *.zip)        unzip $1       ;;
+            *.Z)        uncompress $1  ;;
+            *.7z)        7z x $1        ;;
+            *)        echo "No se como descomprimir este '$1'..." ;;
+            esac
+    else
+            echo "'$1' no es un archivo valido!"
+    fi
+ }
 
-# Custom Highlight syntax
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#4C566A,underline"
 
-# Uncomment the following line to use case-sensitive completion.
-CASE_SENSITIVE="false"
+######## Alias ########
 
-# fzf source
-source /usr/share/fzf/key-bindings.zsh
+alias mirrors="sudo reflector --verbose --latest 5 --country 'United States' --age 6 --sort rate --save /etc/pacman.d/mirrorlist"
 
-###############################
-# ****** ALIAS SECTION ****** #
-###############################
+alias grub-update="sudo grub-mkconfig -o /boot/grub/grub.cfg"
+alias mantenimiento="yay -Sc && sudo pacman -Scc"
+alias purga="sudo pacman -Rns $(pacman -Qtdq) ; sudo fstrim -av"
+alias update="yay -Syu"
 
-# Update thingy
-alias grub-update='sudo grub-mkconfig -o /boot/grub/grub.cfg'
-alias mirror-update='sudo reflector --verbose -c Indonesia -c Japan -c Singapore --sort rate --save /etc/pacman.d/mirrorlist'
-# Archives
-alias mtar='tar -zcvf' # mtar <archive_compress>
-alias utar='tar -zxvf' # utar <archive_decompress> <file_list>
-alias z='zip -r' # z <archive_compress> <file_list>
-alias uz='unzip' # uz <archive_decompress> -d <dir>
-# alias for sourcing the zshrc
-alias sr='source ~/.zshrc'
-# alias for cd up a directory
-alias ..="cd .."
-# alias for making a directory and cd to it
-mcd () {
-    mkdir -p $1
-    cd $1
-}
-# alias for searching through ps
-alias psg="ps aux | grep -v grep | grep -i -e VSZ -e" 
-# alias for mkdir so that it makes required parent directory
-alias mkdir="mkdir -p"
-# alias for ranger
-alias fm='ranger'
-# alias for searching and installing packages
-alias pacs="pacman -Slq | fzf -m --preview 'cat <(pacman -Si {1}) <(pacman -Fl {1} | awk \"{print \$2}\")' | xargs -ro sudo pacman -S"
-# alias for searching and installing packages from AUR
-alias yays="yay -Slq | fzf -m --preview 'cat <(yay -Si {1}) <(yay -Fl {1} | awk \"{print \$2}\")' | xargs -ro  yay -S"
-# alias for searching and removing packages from system
-alias pacr="pacman -Qq | fzf --multi --preview 'pacman -Qi {1}' | xargs -ro sudo pacman -Rns"
-# alias for searching packages from system
-alias p="pacman -Q | fzf"
-# alias for wifi
-alias wifi="nmtui-connect"
-# alias for grep
-alias grep='grep --color=auto'
-# alias for Neovim
-alias v='nvim'
-# alias for verbose cp, mv, rm
-alias mv='mv -v'
-alias cp='cp -vr'
-alias rm='rm -vr'
-# alias for running cpp files
-rc(){
-  g++ "$1" -o run
-  ./run
-}
-# alias for checking dunst
-alias dun='killall dunst && dunst &
-notify-send "cool1" "yeah it is working"
-notify-send "cool2" "yeah it is working"'
+alias vm-on="sudo systemctl start libvirtd.service"
+alias vm-off="sudo systemctl stop libvirtd.service"
 
-# ---------------P R O M P T------------------
-# Init Starship
-eval "$(starship init zsh)"
-# Setup Starship custom prompt
-export STARSHIP_CONFIG=$HOME/.config/starship/starship.toml
+alias ls='lsd -a --group-directories-first'
+alias ll='lsd -la --group-directories-first'
+
+~/.local/bin/colorscript -r
+
