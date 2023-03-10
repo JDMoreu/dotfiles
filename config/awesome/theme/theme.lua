@@ -36,9 +36,9 @@ theme.xcolor12 = xrdb.color12
 theme.xcolor13 = xrdb.color13
 theme.xcolor14 = xrdb.color14
 theme.xcolor15 = xrdb.color15
-theme.darker_bg = "#0a1419"
-theme.lighter_bg = "#162026"
-theme.dashboard_fg = "#666c79"
+theme.darker_bg = "#181818"
+theme.lighter_bg = "#1f1f1f"
+theme.dashboard_fg = "#4e4e4e"
 theme.transparent = "#00000000"
 
 -- PFP
@@ -47,8 +47,8 @@ theme.pfp = gears.surface.load_uncached(gfs.get_configuration_dir() .. "theme/as
 -- Wallpaper
 theme.wallpaper = gears.surface.load_uncached(gfs.get_configuration_dir() .. "theme/assets/bg.png")
 
--- Awesome Logo
-theme.awesome_logo = gears.surface.load_uncached(gfs.get_configuration_dir() .. "theme/assets/icons/awesome.png")
+-- My Logo
+theme.awesome_logo = gears.surface.load_uncached(gfs.get_configuration_dir() .. "theme/assets/icons/arch-linux.png")
 
 -- Notifications bell icon
 theme.notification_bell_icon = gears.surface.load_uncached(gfs.get_configuration_dir() .. "theme/assets/icons/notification-bell.png")
